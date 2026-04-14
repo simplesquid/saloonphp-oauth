@@ -179,19 +179,36 @@ Override these protected methods in your connector to customize behavior:
 
 ## Testing
 
-The package ships `NullLocker` and `InMemoryTokenStore` for use in tests:
+The package ships `NullLocker` and `InMemoryTokenStore` for use in tests. Override the resolver methods in your connector to inject them:
 
 ```php
+use SimpleSquid\SaloonOAuth\Contracts\TokenLocker;
+use SimpleSquid\SaloonOAuth\Contracts\TokenStore;
 use SimpleSquid\SaloonOAuth\Support\NullLocker;
 use SimpleSquid\SaloonOAuth\Testing\InMemoryTokenStore;
 
 $store = new InMemoryTokenStore;
 $locker = new NullLocker;
 
-$connector = new YourConnector(
-    store: $store,
-    locker: $locker,
-);
+// Option A: accept dependencies via constructor and wire up the resolvers
+final class YourConnector extends Connector
+{
+    use AuthorizationCodeGrant;
+    use HasAutoRefresh;
+
+    public function __construct(
+        private readonly TokenStore $store,
+        private readonly TokenLocker $locker,
+    ) {}
+
+    protected function resolveTokenStore(): TokenStore { return $this->store; }
+    protected function resolveTokenLocker(): TokenLocker { return $this->locker; }
+    // ...
+}
+
+// Option B: rebind the contracts in a test
+$this->app->bind(TokenStore::class, fn () => new InMemoryTokenStore);
+$this->app->bind(TokenLocker::class, fn () => new NullLocker);
 ```
 
 Run the package tests:

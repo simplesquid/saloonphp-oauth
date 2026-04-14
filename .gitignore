@@ -14,19 +14,20 @@ yarn-error.log
 .phpunit.result.cache
 /build
 
-# IDE Helper
-_ide_helper.php
-_ide_helper_models.php
-.phpstorm.meta.php
-
 # Editors
 /.idea
 /.fleet
 /.vscode
 
+# Code sniffer
+.php_cs
+.php_cs.cache
+.php-cs-fixer.cache
+
 # Misc
 phpunit.xml
 phpstan.neon
+psalm.xml
 testbench.yaml
 /docs
 /coverage

@@ -1,0 +1,121 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method Pest\\Expectation\<Saloon\\Contracts\\Authenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/HasAutoRefreshTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Expectation\<Saloon\\Contracts\\OAuthAuthenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HasAutoRefreshTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Mixins\\Expectation\<Saloon\\Contracts\\Authenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/HasAutoRefreshTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:fail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HasAutoRefreshTest.php
+
+		-
+			message: '#^Cannot call method toBe\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 6
+			path: tests/Feature/HasAutoRefreshTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Expectation\<Saloon\\Contracts\\Authenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: tests/Feature/HasClientCredentialsCacheTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Expectation\<Saloon\\Contracts\\OAuthAuthenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HasClientCredentialsCacheTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Mixins\\Expectation\<Saloon\\Contracts\\Authenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/HasClientCredentialsCacheTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall\:\:fail\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/HasClientCredentialsCacheTest.php
+
+		-
+			message: '#^Cannot call method toBe\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 6
+			path: tests/Feature/HasClientCredentialsCacheTest.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Cache\\Lock\:\:acquire\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/Support/CacheTokenLockerTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Expectation\<Saloon\\Contracts\\OAuthAuthenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Call to an undefined method Pest\\Mixins\\Expectation\<Saloon\\Contracts\\OAuthAuthenticator\|null\>\:\:getAccessToken\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method and\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method getExpiresAt\(\) on Saloon\\Contracts\\OAuthAuthenticator\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method getRefreshToken\(\) on Saloon\\Contracts\\OAuthAuthenticator\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method toBe\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method toBeInstanceOf\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Feature/Support/EloquentTokenStoreTest.php
+
+		-
+			message: '#^Cannot call method up\(\) on mixed\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/TestCase.php
+
+		-
+			message: '#^Parameter \#1 \$pendingRequest of method SimpleSquid\\SaloonOAuth\\Auth\\VoidAuthenticator\:\:set\(\) expects Saloon\\Http\\PendingRequest, Mockery\\MockInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Auth/VoidAuthenticatorTest.php

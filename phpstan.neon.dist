@@ -5,4 +5,7 @@ parameters:
     level: 10
     paths:
         - src
+        - tests
+    excludePaths:
+        - tests/ArchTest.php
     treatPhpDocTypesAsCertain: false

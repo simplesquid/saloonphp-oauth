@@ -32,7 +32,10 @@ class SaloonOAuthServiceProvider extends PackageServiceProvider
         $this->app->bind(TokenStore::class, EloquentTokenStore::class);
 
         $this->app->bind(TokenLocker::class, function (): CacheTokenLocker {
-            $store = Cache::store(config()->string('saloon-oauth.lock.store'))->getStore();
+            /** @var string|null $storeName */
+            $storeName = config('saloon-oauth.lock.store');
+
+            $store = Cache::store($storeName)->getStore();
 
             if (! $store instanceof LockProvider) {
                 throw InvalidCacheStoreException::lockProviderRequired();

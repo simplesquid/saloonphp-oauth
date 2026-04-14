@@ -15,7 +15,7 @@ use Override;
  * @property DateTimeImmutable|null $expires_at
  * @property DateTimeImmutable|null $revoked_at
  */
-final class OAuthToken extends Model
+class OAuthToken extends Model
 {
     /** @var list<string> */
     protected $fillable = [
