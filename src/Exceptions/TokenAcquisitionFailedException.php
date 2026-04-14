@@ -7,10 +7,10 @@ namespace SimpleSquid\SaloonOAuth\Exceptions;
 use RuntimeException;
 use Throwable;
 
-final class TokenRefreshFailedException extends RuntimeException
+class TokenAcquisitionFailedException extends RuntimeException
 {
     public static function fromException(Throwable $previous): self
     {
-        return new self('Failed to refresh the OAuth token: '.$previous->getMessage(), previous: $previous);
+        return new self('Failed to acquire an OAuth token: '.$previous->getMessage(), previous: $previous);
     }
 }

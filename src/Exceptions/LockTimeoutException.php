@@ -6,7 +6,7 @@ namespace SimpleSquid\SaloonOAuth\Exceptions;
 
 use RuntimeException;
 
-final class LockTimeoutException extends RuntimeException
+class LockTimeoutException extends RuntimeException
 {
     public static function forKey(string $key): self
     {

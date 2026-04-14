@@ -17,7 +17,14 @@ use Override;
  */
 final class OAuthToken extends Model
 {
-    protected $guarded = [];
+    /** @var list<string> */
+    protected $fillable = [
+        'key',
+        'access_token',
+        'refresh_token',
+        'expires_at',
+        'revoked_at',
+    ];
 
     #[Override]
     public function getTable(): string

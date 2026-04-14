@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SimpleSquid\SaloonOAuth\Tests\Fixtures;
+namespace SimpleSquid\SaloonOAuth\Testing;
 
 use Override;
 use Saloon\Contracts\OAuthAuthenticator;

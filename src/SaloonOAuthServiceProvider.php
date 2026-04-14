@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Override;
 use SimpleSquid\SaloonOAuth\Contracts\TokenLocker;
 use SimpleSquid\SaloonOAuth\Contracts\TokenStore;
+use SimpleSquid\SaloonOAuth\Exceptions\InvalidCacheStoreException;
 use SimpleSquid\SaloonOAuth\Support\CacheTokenLocker;
 use SimpleSquid\SaloonOAuth\Support\EloquentTokenStore;
 use Spatie\LaravelPackageTools\Package;
@@ -33,10 +34,13 @@ class SaloonOAuthServiceProvider extends PackageServiceProvider
         $this->app->bind(TokenLocker::class, function (): CacheTokenLocker {
             $store = Cache::store(config()->string('saloon-oauth.lock.store'))->getStore();
 
-            assert($store instanceof LockProvider, 'The configured cache store must implement LockProvider.');
+            if (! $store instanceof LockProvider) {
+                throw InvalidCacheStoreException::lockProviderRequired();
+            }
 
             return new CacheTokenLocker(
                 $store,
+                config()->integer('saloon-oauth.lock.ttl', 30),
                 config()->integer('saloon-oauth.lock.wait', 10),
             );
         });

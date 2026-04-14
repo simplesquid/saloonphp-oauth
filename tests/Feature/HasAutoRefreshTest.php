@@ -5,10 +5,11 @@ declare(strict_types=1);
 use Saloon\Http\Auth\AccessTokenAuthenticator;
 use Saloon\Http\Faking\MockClient;
 use Saloon\Http\Faking\MockResponse;
-use SimpleSquid\SaloonOAuth\Exceptions\TokenRefreshFailedException;
+use SimpleSquid\SaloonOAuth\Contracts\TokenLocker;
+use SimpleSquid\SaloonOAuth\Exceptions\TokenAcquisitionFailedException;
 use SimpleSquid\SaloonOAuth\Exceptions\TokenRevokedException;
 use SimpleSquid\SaloonOAuth\Support\NullLocker;
-use SimpleSquid\SaloonOAuth\Tests\Fixtures\InMemoryTokenStore;
+use SimpleSquid\SaloonOAuth\Testing\InMemoryTokenStore;
 use SimpleSquid\SaloonOAuth\Tests\Fixtures\TestConnector;
 
 it('returns a valid token without refreshing', function (): void {
@@ -59,7 +60,6 @@ it('refreshes an expired token', function (): void {
         ->toBeInstanceOf(AccessTokenAuthenticator::class)
         ->getAccessToken()->toBe('new-token');
 
-    // Verify the store was updated.
     $stored = $store->get('test-key');
     expect($stored)->getAccessToken()->toBe('new-token');
 
@@ -122,7 +122,7 @@ it('throws TokenRevokedException for a revoked token', function (): void {
     $connector->getAuthenticator();
 })->throws(TokenRevokedException::class);
 
-it('wraps refresh failures in TokenRefreshFailedException', function (): void {
+it('wraps refresh failures in TokenAcquisitionFailedException', function (): void {
     $store = new InMemoryTokenStore;
     $locker = new NullLocker;
 
@@ -142,8 +142,8 @@ it('wraps refresh failures in TokenRefreshFailedException', function (): void {
 
     try {
         $connector->getAuthenticator();
-        $this->fail('Expected TokenRefreshFailedException');
-    } catch (TokenRefreshFailedException $e) {
+        $this->fail('Expected TokenAcquisitionFailedException');
+    } catch (TokenAcquisitionFailedException $e) {
         expect($e->getPrevious())->not->toBeNull();
     } finally {
         MockClient::destroyGlobal();
@@ -166,4 +166,40 @@ it('does not refresh a token without an expiry date', function (): void {
     $auth = $connector->getAuthenticator();
 
     expect($auth)->getAccessToken()->toBe('no-expiry-token');
+});
+
+it('uses a fresh token when another process refreshed inside the lock', function (): void {
+    $store = new InMemoryTokenStore;
+
+    $expired = new AccessTokenAuthenticator(
+        accessToken: 'expired-token',
+        refreshToken: 'refresh-token',
+        expiresAt: new DateTimeImmutable('-1 hour'),
+    );
+
+    $store->put('test-key', $expired);
+
+    // A locker that simulates another process refreshing the token before the callback runs.
+    $locker = new class($store) implements TokenLocker
+    {
+        public function __construct(private readonly InMemoryTokenStore $store) {}
+
+        public function lock(string $key, Closure $callback): mixed
+        {
+            // Simulate another process having refreshed the token.
+            $this->store->put('test-key', new AccessTokenAuthenticator(
+                accessToken: 'already-refreshed',
+                refreshToken: 'new-refresh',
+                expiresAt: new DateTimeImmutable('+1 hour'),
+            ));
+
+            return $callback();
+        }
+    };
+
+    $connector = new TestConnector('test-key', $store, $locker);
+    $auth = $connector->getAuthenticator();
+
+    // Should use the already-refreshed token, not attempt another refresh.
+    expect($auth)->getAccessToken()->toBe('already-refreshed');
 });

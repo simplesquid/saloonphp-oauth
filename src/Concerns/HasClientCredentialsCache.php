@@ -4,36 +4,21 @@ declare(strict_types=1);
 
 namespace SimpleSquid\SaloonOAuth\Concerns;
 
-use DateTimeImmutable;
 use Saloon\Contracts\Authenticator;
 use Saloon\Contracts\OAuthAuthenticator;
 use SimpleSquid\SaloonOAuth\Auth\VoidAuthenticator;
-use SimpleSquid\SaloonOAuth\Contracts\TokenLocker;
 use SimpleSquid\SaloonOAuth\Contracts\TokenStore;
-use SimpleSquid\SaloonOAuth\Exceptions\TokenRefreshFailedException;
+use SimpleSquid\SaloonOAuth\Exceptions\TokenAcquisitionFailedException;
 use Throwable;
 
 /** @phpstan-ignore trait.unused */
 trait HasClientCredentialsCache
 {
+    use ResolvesOAuthDependencies;
+
     protected function resolveTokenKey(): string
     {
         return static::class;
-    }
-
-    protected function resolveTokenStore(): TokenStore
-    {
-        return app(TokenStore::class);
-    }
-
-    protected function resolveTokenLocker(): TokenLocker
-    {
-        return app(TokenLocker::class);
-    }
-
-    protected function resolveExpiryBuffer(): int
-    {
-        return config()->integer('saloon-oauth.expiry_buffer', 300);
     }
 
     protected function defaultAuth(): ?Authenticator
@@ -59,30 +44,20 @@ trait HasClientCredentialsCache
         });
     }
 
-    private function isExpired(OAuthAuthenticator $authenticator): bool
-    {
-        $expiresAt = $authenticator->getExpiresAt();
-
-        if ($expiresAt === null) {
-            return false;
-        }
-
-        $buffer = $this->resolveExpiryBuffer();
-
-        return $expiresAt->getTimestamp() - $buffer <= (new DateTimeImmutable)->getTimestamp();
-    }
-
     private function acquireAndPersist(string $key, TokenStore $store): OAuthAuthenticator
     {
         try {
-            /** @var OAuthAuthenticator $authenticator */
             $authenticator = $this->getAccessToken(
                 requestModifier: function ($request): void {
                     $request->authenticate(new VoidAuthenticator);
                 },
             );
         } catch (Throwable $e) {
-            throw TokenRefreshFailedException::fromException($e);
+            throw TokenAcquisitionFailedException::fromException($e);
+        }
+
+        if (! $authenticator instanceof OAuthAuthenticator) {
+            throw new TokenAcquisitionFailedException('Token acquisition did not return an OAuthAuthenticator.');
         }
 
         $store->put($key, $authenticator);

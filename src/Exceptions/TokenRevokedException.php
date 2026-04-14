@@ -6,7 +6,7 @@ namespace SimpleSquid\SaloonOAuth\Exceptions;
 
 use RuntimeException;
 
-final class TokenRevokedException extends RuntimeException
+class TokenRevokedException extends RuntimeException
 {
     public static function forKey(string $key): self
     {

@@ -6,6 +6,7 @@ namespace SimpleSquid\SaloonOAuth\Support;
 
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Crypt;
 use Override;
 use Saloon\Contracts\OAuthAuthenticator;
 use Saloon\Http\Auth\AccessTokenAuthenticator;
@@ -57,7 +58,11 @@ final readonly class EloquentTokenStore implements TokenStore
         $this->query()
             ->where('key', $key)
             ->whereNull('revoked_at')
-            ->update(['revoked_at' => now()]);
+            ->update([
+                'access_token' => Crypt::encryptString(''),
+                'refresh_token' => null,
+                'revoked_at' => now(),
+            ]);
     }
 
     #[Override]

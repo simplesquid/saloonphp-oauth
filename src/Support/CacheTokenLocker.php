@@ -15,13 +15,14 @@ final readonly class CacheTokenLocker implements TokenLocker
 {
     public function __construct(
         private LockProvider $store,
+        private int $ttl,
         private int $wait,
     ) {}
 
     #[Override]
     public function lock(string $key, Closure $callback): mixed
     {
-        $lock = $this->store->lock("saloon-oauth:{$key}", $this->wait);
+        $lock = $this->store->lock("saloon-oauth:{$key}", $this->ttl);
 
         try {
             return $lock->block($this->wait, $callback);
