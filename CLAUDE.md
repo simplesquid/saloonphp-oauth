@@ -33,8 +33,12 @@ Three traits, two contracts, one model, one migration, one config.
 Both main traits use `VoidAuthenticator` in the `requestModifier` to prevent recursive auth during token acquisition/refresh.
 
 **Contracts** (in `src/Contracts/`):
-- `TokenStore` -- get, put, revoke, forget. Uses Saloon's `OAuthAuthenticator` directly.
+- `TokenStore` -- get, put, revoke, forget. Uses Saloon's `OAuthAuthenticator` directly. `get()` and `put()` both throw `TokenRevokedException` on revoked keys -- `put()` refuses to un-revoke so concurrent refresh-vs-revoke races cannot resurrect a token. Callers must `forget()` before re-using a revoked key.
 - `TokenLocker` -- distributed lock around refresh/acquire.
+
+**Failure semantics in the traits**:
+- Persist failures after a successful refresh are logged via `report()` and the fresh token is returned to the caller. The current request succeeds; the next request retries the refresh (which will fail if the provider rotated the refresh token -- unsolvable without idempotent refresh).
+- `TokenRevokedException` from `put()` is propagated (not swallowed) so the current request fails, matching the intent of the revocation.
 
 **Support** (in `src/Support/`):
 - `EloquentTokenStore` -- backed by configurable model, encrypted tokens. Clears token values on revoke.

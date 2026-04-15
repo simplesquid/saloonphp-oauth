@@ -52,11 +52,20 @@ it('revokes a token', function (): void {
     $store->get('test-key');
 })->throws(TokenRevokedException::class);
 
-it('clears revoked state when putting a new token', function (): void {
+it('refuses to put a new token for a revoked key', function (): void {
     $store = new EloquentTokenStore;
 
     $store->put('test-key', new AccessTokenAuthenticator('old-token'));
     $store->revoke('test-key');
+    $store->put('test-key', new AccessTokenAuthenticator('new-token'));
+})->throws(TokenRevokedException::class);
+
+it('allows re-using a revoked key after forget', function (): void {
+    $store = new EloquentTokenStore;
+
+    $store->put('test-key', new AccessTokenAuthenticator('old-token'));
+    $store->revoke('test-key');
+    $store->forget('test-key');
     $store->put('test-key', new AccessTokenAuthenticator('new-token'));
 
     expect($store->get('test-key'))->getAccessToken()->toBe('new-token');

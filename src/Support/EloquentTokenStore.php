@@ -40,13 +40,20 @@ final readonly class EloquentTokenStore implements TokenStore
     #[Override]
     public function put(string $key, OAuthAuthenticator $authenticator): void
     {
+        $existing = $this->query()->where('key', $key)->first();
+
+        if ($existing !== null && $existing->revoked_at !== null) {
+            // A concurrent revoke() landed while we were acquiring/refreshing.
+            // Refuse to un-revoke — callers must forget() before re-using a revoked key.
+            throw TokenRevokedException::forKey($key);
+        }
+
         $this->query()->updateOrCreate(
             ['key' => $key],
             [
                 'access_token' => $authenticator->getAccessToken(),
                 'refresh_token' => $authenticator->getRefreshToken(),
                 'expires_at' => $authenticator->getExpiresAt(),
-                'revoked_at' => null,
             ],
         );
     }

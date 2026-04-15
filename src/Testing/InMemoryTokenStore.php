@@ -30,8 +30,11 @@ final class InMemoryTokenStore implements TokenStore
     #[Override]
     public function put(string $key, OAuthAuthenticator $authenticator): void
     {
+        if (isset($this->revoked[$key])) {
+            throw TokenRevokedException::forKey($key);
+        }
+
         $this->tokens[$key] = $authenticator;
-        unset($this->revoked[$key]);
     }
 
     #[Override]

@@ -132,7 +132,24 @@ public function callback(Request $request, TokenStore $store): RedirectResponse
 $store->revoke("user:{$userId}:exact-online");
 ```
 
-After revocation, any attempt to use the token throws `TokenRevokedException`. To remove the record entirely, use `$store->forget($key)`.
+After revocation:
+
+- `get()` throws `TokenRevokedException`.
+- `put()` also throws `TokenRevokedException` — revoked keys cannot be overwritten. This prevents a concurrent refresh from silently un-revoking a token. To re-use the same key (e.g. after the user re-authorises), call `$store->forget($key)` first, then `$store->put($key, $newAuthenticator)`.
+
+```php
+$store->forget("user:{$userId}:exact-online");
+$store->put("user:{$userId}:exact-online", $newAuthenticator);
+```
+
+## Failure Semantics
+
+The traits are designed so that a single failing request doesn't cascade:
+
+- **Token refresh HTTP call fails** — `TokenAcquisitionFailedException` is thrown, wrapping the underlying Saloon exception.
+- **Token refresh succeeds but the store `put()` fails transiently** (e.g. DB outage) — the exception is reported via Laravel's `report()` helper, and the fresh token is still returned to the caller. The current request succeeds; the next request will try to refresh again.
+- **Token refresh succeeds but the key was revoked concurrently** — `TokenRevokedException` is thrown. The persist is rejected at the store level, so a revoked token cannot accidentally resurrect.
+- **Lock cannot be acquired within `lock.wait`** — `LockTimeoutException` is thrown.
 
 ## Configuration
 

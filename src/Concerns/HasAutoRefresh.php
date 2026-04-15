@@ -9,6 +9,7 @@ use Saloon\Contracts\OAuthAuthenticator;
 use SimpleSquid\SaloonOAuth\Auth\VoidAuthenticator;
 use SimpleSquid\SaloonOAuth\Contracts\TokenStore;
 use SimpleSquid\SaloonOAuth\Exceptions\TokenAcquisitionFailedException;
+use SimpleSquid\SaloonOAuth\Exceptions\TokenRevokedException;
 use Throwable;
 
 /** @phpstan-ignore trait.unused */
@@ -64,7 +65,18 @@ trait HasAutoRefresh
             throw new TokenAcquisitionFailedException('Token refresh did not return an OAuthAuthenticator.');
         }
 
-        $store->put($key, $refreshed);
+        // Persist best-effort. A TokenRevokedException means a concurrent revoke() landed
+        // while we were refreshing — propagate it so the current request fails too.
+        // Any other persist failure (DB outage, etc.) is logged; the current request still
+        // succeeds with the fresh token. The next request will retry the refresh, which
+        // will fail if the provider rotated the refresh token — nothing we can do there.
+        try {
+            $store->put($key, $refreshed);
+        } catch (TokenRevokedException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         return $refreshed;
     }

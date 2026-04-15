@@ -9,6 +9,7 @@ use Saloon\Contracts\OAuthAuthenticator;
 use SimpleSquid\SaloonOAuth\Auth\VoidAuthenticator;
 use SimpleSquid\SaloonOAuth\Contracts\TokenStore;
 use SimpleSquid\SaloonOAuth\Exceptions\TokenAcquisitionFailedException;
+use SimpleSquid\SaloonOAuth\Exceptions\TokenRevokedException;
 use Throwable;
 
 /** @phpstan-ignore trait.unused */
@@ -60,7 +61,17 @@ trait HasClientCredentialsCache
             throw new TokenAcquisitionFailedException('Token acquisition did not return an OAuthAuthenticator.');
         }
 
-        $store->put($key, $authenticator);
+        // Persist best-effort. A TokenRevokedException means a concurrent revoke() landed
+        // while we were acquiring — propagate it so the current request fails too. Any
+        // other persist failure is logged and the current request proceeds; client
+        // credentials can always be re-acquired on the next request.
+        try {
+            $store->put($key, $authenticator);
+        } catch (TokenRevokedException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         return $authenticator;
     }
